@@ -5,14 +5,19 @@
 #include <fcntl.h> //file control
 #include <errno.h> //error handling
 #include <termios.h> //termios API for terminal control
+#include <sys/select.h> //select() syscall for non-blocking I/O
 
 // struct termios tty; //tty as naming convention
 
-int main(){
-  //open serial port (in this case, /dev/ttyS0)
-  int serial_port = open("/dev/ttyS0", O_RDWR);
+int main(int argc, char *argv[]){
+  if(argc < 2) {
+    printf("Usage: %s <serial device>\n", argv[0]);
+    return 1;
+  }
+  //open serial port (file is configurable per device)
+  int serial_port = open(argv[1], O_RDWR);
 
-  if (serial_port < 0) {
+  if(serial_port < 0) {
     perror("open");
     return 1;
   }
@@ -26,12 +31,10 @@ int main(){
   }
 
   /* CONTROL MODE OPTIONS (C_CFLAG) */
-  tty.c_cflag &= ~PARENB;
   tty.c_cflag |= PARENB;
-  tty.c_cflag &= ~CSTOPB;
   tty.c_cflag |= CSTOPB;
   tty.c_cflag &= ~CSIZE;
-  tty.c_cflag |= CS7; //7-bit data field
+  tty.c_cflag |= CS8; //7-bit data field
   tty.c_cflag |= CREAD | CLOCAL;
   
   /* LOCAL MODE OPTIONS (C_LFLAG) */
