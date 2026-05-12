@@ -6,11 +6,18 @@
 #include <errno.h> //error handling
 #include <termios.h> //termios API for terminal control
 
-struct termios tty; //tty as naming convention
+// struct termios tty; //tty as naming convention
 
 int main(){
   //open serial port (in this case, /dev/ttyS0)
   int serial_port = open("/dev/ttyS0", O_RDWR);
+
+  if (serial_port < 0) {
+    perror("open");
+    return 1;
+  }
+
+  struct termios tty;
 
   //check for errors
   if(tcgetattr(serial_port, &tty) != 0) {
@@ -26,7 +33,7 @@ int main(){
   tty.c_cflag &= ~CSIZE;
   tty.c_cflag |= CS7; //7-bit data field
   tty.c_cflag |= CREAD | CLOCAL;
-
+  
   /* LOCAL MODE OPTIONS (C_LFLAG) */
   tty.c_lflag &= ~ICANON;
   tty.c_lflag &= ~ECHO; // echo
@@ -41,4 +48,18 @@ int main(){
   /* OUTPUT MODE OPTIONS (C_OFLAG)*/
   tty.c_oflag &= ~OPOST;
   tty.c_oflag &= ~ONLCR;
+
+  /* SPECIAL CHARACTER OPTIONS (C_CC [NCCS])*/
+  tty.c_cc[VTIME] = 10;
+  tty.c_cc[VMIN] = 0;
+
+  /* BAUD RATES (UNIX-BASED)*/
+  cfsetispeed(&tty, B9600);
+  cfsetospeed(&tty, B9600);
+  
+  /* SAVING TTY AND ERROR CHECKS*/
+  if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
+      printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
+      return 1;
+  }
 }
