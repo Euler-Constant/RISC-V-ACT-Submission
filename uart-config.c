@@ -25,4 +25,20 @@ int main(){
   tty.c_cflag |= CSTOPB;
   tty.c_cflag &= ~CSIZE;
   tty.c_cflag |= CS7; //7-bit data field
+  tty.c_cflag |= CREAD | CLOCAL;
+
+  /* LOCAL MODE OPTIONS (C_LFLAG) */
+  tty.c_lflag &= ~ICANON;
+  tty.c_lflag &= ~ECHO; // echo
+  tty.c_lflag &= ~ECHOE; // erasure
+  tty.c_lflag &= ~ECHONL; // new-line echo
+  tty.c_lflag &= ~ISIG; //signal characters
+  
+  /* INPUT MODE OPTIONS (C_IFLAG) */
+  tty.c_iflag &= ~(IXON | IXOFF | IXANY); //software-flow control
+  tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); //special handling of bytes 
+  
+  /* OUTPUT MODE OPTIONS (C_OFLAG)*/
+  tty.c_oflag &= ~OPOST;
+  tty.c_oflag &= ~ONLCR;
 }
