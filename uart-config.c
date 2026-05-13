@@ -7,8 +7,6 @@
 #include <termios.h> //termios API for terminal control
 #include <sys/select.h> //select() syscall for non-blocking I/O
 
-// struct termios tty; //tty as naming convention
-
 int main(int argc, char *argv[]){
   if(argc < 2) {
     printf("Usage: %s <serial device>\n", argv[0]);
@@ -51,11 +49,11 @@ int main(int argc, char *argv[]){
   /* OUTPUT MODE OPTIONS (C_OFLAG)*/
   tty.c_oflag &= ~OPOST;
   tty.c_oflag &= ~ONLCR;
-
+  
   /* SPECIAL CHARACTER OPTIONS (C_CC [NCCS])*/
   tty.c_cc[VTIME] = 10;
   tty.c_cc[VMIN] = 0;
-
+  
   /* BAUD RATES (UNIX-BASED)*/
   cfsetispeed(&tty, B9600);
   cfsetospeed(&tty, B9600);
@@ -65,4 +63,20 @@ int main(int argc, char *argv[]){
       printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
       return 1;
   }
+  
+  unsigned char msg[] = { 'H', 'e', 'l', 'l', 'o', '\r' };
+  write(serial_port, msg, sizeof(msg));
+  char read_buf [256];
+  memset(&read_buf, '\0', sizeof(read_buf));
+
+  int num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
+  printf("Read %d bytes: %s\n", num_bytes, read_buf);
+
+  if(num_bytes < 0){
+    printf("Error reading: %s", strerror(errno));
+    return 1;
+  }
+
+  close(serial_port);
+  return 0;
 }
