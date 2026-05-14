@@ -73,8 +73,39 @@ int main(int argc, char *argv[]){
   char read_buf [256];
   memset(&read_buf, '\0', sizeof(read_buf));
 
+  struct timeval timeout;
+  fd_set readfds;
+
+  timeout.tv_sec = 5;
+  timeout.tv_usec = 0;
+
+  FD_ZERO(&readfds);
+  FD_SET(serial_port, &readfds);
+  int rv = select(serial_port + 1, &readfds, NULL, NULL, &timeout);
+  
+  if (rv == 0) {
+    printf("Timeout: no data received.\n");
+
+  } else if (rv < 0) {
+      perror("select");
+      close(serial_port);
+      return 1;
+
+  } else {
+    if (FD_ISSET(serial_port, &readfds)) {
+        int num_bytes = read(serial_port, read_buf, sizeof(read_buf));
+
+        if (num_bytes < 0) {
+            perror("read");
+            close(serial_port);
+            return 1;
+        }
+
+        printf("Read %d bytes: %s\n", num_bytes, read_buf);
+    }
+}
   int num_bytes = read(serial_port, &read_buf, sizeof(read_buf)); //reading terminal
-  printf("Read %d bytes: %s\n", num_bytes, read_buf); //value printed to reading terminal
+  //printf("Read %d bytes: %s\n", num_bytes, read_buf); //value printed to reading terminal
 
   if(num_bytes < 0){
     printf("Error reading: %s", strerror(errno));
