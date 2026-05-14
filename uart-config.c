@@ -28,16 +28,16 @@ int main(int argc, char *argv[]){
     return 1;
   }
   
-  //clean up config values
+  //clean up config settings
   cfmakeraw(&tty); 
 
   /* CONTROL MODE OPTIONS (C_CFLAG) */
   tty.c_cflag &= ~PARENB; //parity bit disabled
   tty.c_cflag &= ~CSTOPB; //stop bit disabled
-  tty.c_cflag &= ~CSIZE; //
+  tty.c_cflag &= ~CSIZE; 
   tty.c_cflag |= CS8; //8-bit data field
   tty.c_cflag |= CREAD | CLOCAL;
-  //Dataframe cOnfiguration for the serial: 8N1
+  //Dataframe configuration for the serial: 8N1
   
   /* LOCAL MODE OPTIONS (C_LFLAG) */
   tty.c_lflag &= ~ICANON; //canonical mode
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
   tty.c_oflag &= ~OPOST;
   tty.c_oflag &= ~ONLCR;
   
-  /* SPECIAL CHARACTER OPTIONS (C_CC [NCCS])*/
+  /* TIMER RATES*/
   tty.c_cc[VTIME] = 10;
   tty.c_cc[VMIN] = 0;
   
@@ -68,15 +68,17 @@ int main(int argc, char *argv[]){
       return 1;
   }
   
+  //INITIALISING WRITE PROTOCOL
   unsigned char msg[] = { 'H', 'e', 'l', 'l', 'o', '\r' };
   write(serial_port, msg, sizeof(msg)); // writing terminal
-  char read_buf [256];
+  char read_buf [256]; //WRITE DATA BUFFER
   memset(&read_buf, '\0', sizeof(read_buf));
 
-  struct timeval timeout;
+  /* DATA POLLING PROTOCOL */
+  struct timeval timeout; 
   fd_set readfds;
 
-  timeout.tv_sec = 5;
+  timeout.tv_sec = 60;
   timeout.tv_usec = 0;
 
   FD_ZERO(&readfds);
@@ -103,15 +105,15 @@ int main(int argc, char *argv[]){
 
         printf("Read %d bytes: %s\n", num_bytes, read_buf);
     }
-}
+  }
   int num_bytes = read(serial_port, &read_buf, sizeof(read_buf)); //reading terminal
   //printf("Read %d bytes: %s\n", num_bytes, read_buf); //value printed to reading terminal
 
   if(num_bytes < 0){
-    printf("Error reading: %s", strerror(errno));
+    printf("Error reading: %s", strerror(errno)); //error handling for 'negative' bytes
     return 1;
   }
 
-  close(serial_port);
+  close(serial_port); //closing serial
   return 0;
 }
