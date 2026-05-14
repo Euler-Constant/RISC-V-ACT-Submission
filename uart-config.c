@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
   tty.c_oflag &= ~ONLCR;
   
   /* SPECIAL CHARACTER OPTIONS (C_CC [NCCS])*/
-  tty.c_cc[VTIME] = 100;
+  tty.c_cc[VTIME] = 10;
   tty.c_cc[VMIN] = 0;
   
   /* BAUD RATES (UNIX-BASED)*/
